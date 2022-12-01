@@ -8,34 +8,49 @@ const icon = (name) => <SvgColor src={`/assets/icons/navbar/${name}.svg`} sx={{ 
 const navConfig = [
   {
     title: 'dashboard',
-    path: '/dashboard/app',
-    icon: icon('ic_analytics'),
+    path: '/dashboard',
+    icon: icon('ic_dashboard_black'),
   },
   {
-    title: 'user',
-    path: '/dashboard/user',
-    icon: icon('ic_user'),
+    title: 'quotes',
+    path: 'quotes',
+    icon: icon('ic_quotes'),
   },
   {
-    title: 'product',
-    path: '/dashboard/products',
-    icon: icon('ic_cart'),
+    title: 'quotes add',
+    path: 'addquotes',
+    icon: icon('ic_quotes'),
   },
   {
-    title: 'blog',
-    path: '/dashboard/blog',
-    icon: icon('ic_blog'),
+    title: 'about',
+    path: 'about',
+    icon: icon('ic_info'),
   },
-  {
-    title: 'login',
-    path: '/login',
-    icon: icon('ic_lock'),
-  },
-  {
-    title: 'Not found',
-    path: '/404',
-    icon: icon('ic_disabled'),
-  },
+  // {
+  //   title: 'quotes',
+  //   path: '/dashboard/user',
+  //   icon: icon('ic_quotes'),
+  // },
+  // {
+  //   title: 'product',
+  //   path: '/dashboard/products',
+  //   icon: icon('ic_cart'),
+  // },
+  // {
+  //   title: 'blog',
+  //   path: '/dashboard/blog',
+  //   icon: icon('ic_blog'),
+  // },
+  // {
+  //   title: 'login',
+  //   path: '/login',
+  //   icon: icon('ic_lock'),
+  // },
+  // {
+  //   title: 'Not found',
+  //   path: '/404',
+  //   icon: icon('ic_disabled'),
+  // },
 ];
 
 export default navConfig;

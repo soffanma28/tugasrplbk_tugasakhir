@@ -1,7 +1,9 @@
 import { Helmet } from 'react-helmet-async';
 import { filter } from 'lodash';
 import { sentenceCase } from 'change-case';
-import { useState } from 'react';
+import { useEffect, useState, useCallback } from "react";
+import axios from 'axios';
+import { styled, alpha } from '@mui/material/styles';
 // @mui
 import {
   Card,
@@ -21,25 +23,29 @@ import {
   IconButton,
   TableContainer,
   TablePagination,
+  Toolbar,
+  OutlinedInput,
+  InputAdornment,
+  TextField,
+  CardContent,
 } from '@mui/material';
 // components
 import Label from '../components/label';
 import Iconify from '../components/iconify';
 import Scrollbar from '../components/scrollbar';
 // sections
-import { UserListHead, UserListToolbar } from '../sections/@dashboard/user';
+import { QuotesListHead, QuotesListToolbar } from '../sections/@dashboard/quotes';
 // mock
-import USERLIST from '../_mock/user';
+import QUOTELIST from '../_mock/quotes';
+// component
+// import Iconify from '../../../components/iconify';
 
 // ----------------------------------------------------------------------
 
 const TABLE_HEAD = [
-  { id: 'name', label: 'Name', alignRight: false },
-  { id: 'company', label: 'Company', alignRight: false },
-  { id: 'role', label: 'Role', alignRight: false },
-  { id: 'isVerified', label: 'Verified', alignRight: false },
-  { id: 'status', label: 'Status', alignRight: false },
-  { id: '' },
+  { id: 'id', label: 'ID', alignRight: false },
+  { id: 'author', label: 'Author', alignRight: false },
+  { id: 'en', label: 'Quotes', alignRight: false },
 ];
 
 // ----------------------------------------------------------------------
@@ -68,12 +74,12 @@ function applySortFilter(array, comparator, query) {
     return a[1] - b[1];
   });
   if (query) {
-    return filter(array, (_user) => _user.name.toLowerCase().indexOf(query.toLowerCase()) !== -1);
+    return filter(array, (_quotes) => _quotes.author.toLowerCase().indexOf(query.toLowerCase()) !== -1 || _quotes.en.toLowerCase().indexOf(query.toLowerCase()) !== -1);
   }
   return stabilizedThis.map((el) => el[0]);
 }
 
-export default function UserPage() {
+export default function QuotesPage() {
   const [open, setOpen] = useState(null);
 
   const [page, setPage] = useState(0);
@@ -87,6 +93,26 @@ export default function UserPage() {
   const [filterName, setFilterName] = useState('');
 
   const [rowsPerPage, setRowsPerPage] = useState(5);
+
+  const [quotes, setQuotes] = useState([]);
+  const [author, setAuthor] = useState("Soffan MA");
+
+  const getQuotes = useCallback(async () => {
+    try {
+      const response = await axios.get(`https://programming-quotes-api.herokuapp.com/Quotes/author/${author}`);
+
+    //   console.log(response.data);
+      setQuotes(response.data);
+    //   console.log(quotes.length);
+    } catch (error) {
+      console.log(error);
+    }
+  }, []);
+
+  useEffect(() => {
+    getQuotes();
+    
+  }, [getQuotes]);
 
   const handleOpenMenu = (event) => {
     setOpen(event.currentTarget);
@@ -104,7 +130,7 @@ export default function UserPage() {
 
   const handleSelectAllClick = (event) => {
     if (event.target.checked) {
-      const newSelecteds = USERLIST.map((n) => n.name);
+      const newSelecteds = quotes.map((n) => n.name);
       setSelected(newSelecteds);
       return;
     }
@@ -140,78 +166,106 @@ export default function UserPage() {
     setFilterName(event.target.value);
   };
 
-  const emptyRows = page > 0 ? Math.max(0, (1 + page) * rowsPerPage - USERLIST.length) : 0;
+  const emptyRows = page > 0 ? Math.max(0, (1 + page) * rowsPerPage - quotes.length) : 0;
 
-  const filteredUsers = applySortFilter(USERLIST, getComparator(order, orderBy), filterName);
+  const filteredQuotess = applySortFilter(quotes, getComparator(order, orderBy), filterName);
 
-  const isNotFound = !filteredUsers.length && !!filterName;
+  const isNotFound = !filteredQuotess.length && !!filterName;
+
+  const handleChange = event => {
+    setAuthor(event.target.value);
+  }
+  const handleSearch = event => {
+    event.preventDefault();
+    try {
+      if(author === undefined || author === null || author === '') {
+        const response = axios
+        .get(`https://programming-quotes-api.herokuapp.com/Quotes/author/Soffan MA`)
+        .then(response => {
+          // console.log(response.data);
+          setQuotes(response.data);
+          //   console.log(quotes.length);
+        });
+      } else {
+        const response = axios
+        .get(`https://programming-quotes-api.herokuapp.com/Quotes/author/${author}`)
+        .then(response => {
+          // console.log(response.data);
+          setQuotes(response.data);
+          //   console.log(quotes.length);
+        });
+      }
+      
+    } catch (error) {
+      console.log(error);
+    }
+  }
 
   return (
     <>
       <Helmet>
-        <title> User | Minimal UI </title>
+        <title> Quotes | TA RPLBK Kel 29 </title>
       </Helmet>
 
       <Container>
         <Stack direction="row" alignItems="center" justifyContent="space-between" mb={5}>
           <Typography variant="h4" gutterBottom>
-            User
+            Quotes
           </Typography>
-          <Button variant="contained" startIcon={<Iconify icon="eva:plus-fill" />}>
-            New User
+          <Button href="../addquotes" variant="contained" startIcon={<Iconify icon="eva:plus-fill" />}>
+            New Quotes
           </Button>
         </Stack>
 
         <Card>
-          <UserListToolbar numSelected={selected.length} filterName={filterName} onFilterName={handleFilterByName} />
+          
+          <div style={{ 
+            padding: '1rem 24px',
+            display: 'flex',
+            justifyContent: 'space-evenly',
+            alignItems: 'center'
+           }}>
+            <TextField
+              id="input-with-icon-textfield"
+              label="Search by Author from API"
+              value={author}
+              onChange={handleChange}
+              variant="outlined"
+              sx={{ width: '100%', mr: 3 }}
+            />
+            <Button variant="contained" size="large" onClick={handleSearch}>
+              <Iconify icon="eva:search-fill" sx={{ color: 'text.white', width: 20, height: 20 }} />
+            </Button>
+          </div>
+          <QuotesListToolbar numSelected={selected.length} filterName={filterName} onFilterName={handleFilterByName} />
 
           <Scrollbar>
             <TableContainer sx={{ minWidth: 800 }}>
               <Table>
-                <UserListHead
+                <QuotesListHead
                   order={order}
                   orderBy={orderBy}
                   headLabel={TABLE_HEAD}
-                  rowCount={USERLIST.length}
+                  rowCount={quotes.length}
                   numSelected={selected.length}
                   onRequestSort={handleRequestSort}
                   onSelectAllClick={handleSelectAllClick}
                 />
                 <TableBody>
-                  {filteredUsers.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row) => {
-                    const { id, name, role, status, company, avatarUrl, isVerified } = row;
-                    const selectedUser = selected.indexOf(name) !== -1;
+                  {filteredQuotess.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row) => {
+                    const { id, author, en } = row;
+                    const selectedQuotes = selected.indexOf(author) !== -1;
 
                     return (
-                      <TableRow hover key={id} tabIndex={-1} role="checkbox" selected={selectedUser}>
-                        <TableCell padding="checkbox">
-                          <Checkbox checked={selectedUser} onChange={(event) => handleClick(event, name)} />
-                        </TableCell>
+                      <TableRow hover key={id} tabIndex={-1} role="checkbox" selected={selectedQuotes}>
+                        {/* <TableCell padding="checkbox">
+                          <Checkbox checked={selectedQuotes} onChange={(event) => handleClick(event, name)} />
+                        </TableCell> */}
 
-                        <TableCell component="th" scope="row" padding="none">
-                          <Stack direction="row" alignItems="center" spacing={2}>
-                            <Avatar alt={name} src={avatarUrl} />
-                            <Typography variant="subtitle2" noWrap>
-                              {name}
-                            </Typography>
-                          </Stack>
-                        </TableCell>
+                        <TableCell align="left">{id}</TableCell>
+                        <TableCell align="left">{author}</TableCell>
+                        <TableCell align="left">{en}</TableCell>
 
-                        <TableCell align="left">{company}</TableCell>
-
-                        <TableCell align="left">{role}</TableCell>
-
-                        <TableCell align="left">{isVerified ? 'Yes' : 'No'}</TableCell>
-
-                        <TableCell align="left">
-                          <Label color={(status === 'banned' && 'error') || 'success'}>{sentenceCase(status)}</Label>
-                        </TableCell>
-
-                        <TableCell align="right">
-                          <IconButton size="large" color="inherit" onClick={handleOpenMenu}>
-                            <Iconify icon={'eva:more-vertical-fill'} />
-                          </IconButton>
-                        </TableCell>
                       </TableRow>
                     );
                   })}
@@ -252,12 +306,40 @@ export default function UserPage() {
           <TablePagination
             rowsPerPageOptions={[5, 10, 25]}
             component="div"
-            count={USERLIST.length}
+            count={quotes.length}
             rowsPerPage={rowsPerPage}
             page={page}
             onPageChange={handleChangePage}
             onRowsPerPageChange={handleChangeRowsPerPage}
           />
+        </Card>
+
+        <Card sx={{ mt: 4, }}>
+          <CardContent>
+            <Typography variant="h4" gutterBottom>
+              Authors
+            </Typography>
+            <Typography gutterBottom>
+              Default : Soffan MA
+            </Typography>
+            <ul>
+            <li>
+              <Typography gutterBottom>
+                Edsger W. Dijkstra
+              </Typography>
+              </li>
+              <li>
+              <Typography gutterBottom>
+                Tony Hoare
+              </Typography>
+              </li>
+              <li>
+              <Typography gutterBottom>
+                Fred Brooks
+              </Typography>
+              </li>
+            </ul>
+          </CardContent>
         </Card>
       </Container>
 
