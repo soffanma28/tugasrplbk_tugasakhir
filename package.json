@@ -1,5 +1,6 @@
 {
   "name": "@minimal/material-kit-react",
+  "proxy": "https://tugasrplbk-tugasakhir.vercel.app",
   "author": "minimals.cc",
   "licence": "MIT",
   "version": "1.6.0",
